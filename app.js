@@ -145,8 +145,8 @@ function handleAdd(e) {
     // Only amount is truly required
     if (!amount) return showToast("Please enter an amount", "error");
 
-    const processRecord = (proofData) => {
-        const record = {
+    const buildRecord = (proofData) => {
+        return {
             id: Date.now(),
             type: state.mode,
             person: name || 'Unnamed',
@@ -160,46 +160,146 @@ function handleAdd(e) {
             interestRate: interestRate,
             interestType: interestType,
             contractNote: contractNote,
+            contractDuration: document.getElementById('p-contract-duration').value.trim(),
             importance: importance,
             totalPaid: 0,
             contactPhone: contactPhone,
             contactEmail: contactEmail,
             accountDetails: accountDetails
         };
+    };
 
-        state.records.unshift(record);
-        save();
-        render();
-
-        // Reset form
-        document.getElementById('p-name').value = '';
-        document.getElementById('p-amount').value = '';
-        document.getElementById('p-reason').value = '';
-        document.getElementById('p-proof').value = '';
-        document.getElementById('p-phone').value = '';
-        document.getElementById('p-contact-email').value = '';
-        document.getElementById('p-account').value = '';
-        window._capturedProof = null;
-        const camStatus = document.getElementById('camera-status');
-        if (camStatus) { camStatus.textContent = ''; }
-        if (isInvestment) {
-            document.getElementById('p-invest').checked = false;
-            toggleInvestFields(false);
-        }
-        showToast(isInvestment ? "Investment recorded!" : "Record saved!");
+    const launchContract = (proofData) => {
+        const record = buildRecord(proofData);
+        // Store pending record — contract modal will confirm & save
+        window._pendingRecord = record;
+        openContractModal(record);
     };
 
     // Camera photo takes priority, then file picker
     if (window._capturedProof) {
-        processRecord(window._capturedProof);
+        launchContract(window._capturedProof);
         window._capturedProof = null;
     } else if (fileInput.files[0]) {
-        compressImage(fileInput.files[0]).then(processRecord).catch(() => {
+        compressImage(fileInput.files[0]).then(launchContract).catch(() => {
             showToast("Image error, saving without it", "error");
-            processRecord(null);
+            launchContract(null);
         });
     } else {
-        processRecord(null);
+        launchContract(null);
+    }
+}
+
+// --- Contract Modal Flow ---
+function openContractModal(record) {
+    const modal = document.getElementById('contract-modal');
+    const preview = document.getElementById('contract-preview');
+    const sharingBtns = document.getElementById('contract-sharing');
+
+    // Reset state
+    sharingBtns.style.display = 'none';
+    preview.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Generating contract...</div>';
+
+    modal.showModal();
+
+    // Init signature pad
+    setTimeout(() => initSignaturePad('sig-canvas'), 100);
+
+    // Generate preview
+    generateContractCanvas(record, null).then(canvas => {
+        preview.innerHTML = '';
+        canvas.style.width = '100%';
+        canvas.style.borderRadius = '8px';
+        preview.appendChild(canvas);
+        window._contractCanvas = canvas;
+    });
+}
+
+function confirmContract() {
+    const record = window._pendingRecord;
+    if (!record) return;
+
+    const sigData = getSignatureDataUrl();
+
+    // Regenerate with signature if signed
+    const finalize = (finalCanvas) => {
+        window._contractCanvas = finalCanvas;
+
+        // Save the record
+        state.records.unshift(record);
+        save();
+        render();
+
+        // Show sharing buttons
+        document.getElementById('contract-sharing').style.display = 'block';
+        document.getElementById('contract-confirm-btn').style.display = 'none';
+        document.getElementById('contract-sig-section').style.display = 'none';
+
+        // Generate QR
+        generateContractQR(record, 'contract-qr');
+
+        showToast('Contract confirmed & saved!');
+    };
+
+    if (sigData) {
+        generateContractCanvas(record, sigData).then(finalize);
+    } else {
+        finalize(window._contractCanvas);
+    }
+}
+
+function closeContractModal() {
+    const modal = document.getElementById('contract-modal');
+    modal.close();
+
+    // Reset form if record was saved
+    if (window._pendingRecord && state.records.find(r => r.id === window._pendingRecord.id)) {
+        resetForm();
+    }
+
+    // Reset modal state for next time
+    document.getElementById('contract-confirm-btn').style.display = '';
+    document.getElementById('contract-sig-section').style.display = '';
+    document.getElementById('contract-sharing').style.display = 'none';
+    window._pendingRecord = null;
+    window._contractCanvas = null;
+}
+
+function resetForm() {
+    document.getElementById('p-name').value = '';
+    document.getElementById('p-amount').value = '';
+    document.getElementById('p-reason').value = '';
+    document.getElementById('p-proof').value = '';
+    document.getElementById('p-phone').value = '';
+    document.getElementById('p-contact-email').value = '';
+    document.getElementById('p-account').value = '';
+    document.getElementById('p-contract-duration').value = '';
+    window._capturedProof = null;
+    const camStatus = document.getElementById('camera-status');
+    if (camStatus) camStatus.textContent = '';
+    const investCb = document.getElementById('p-invest');
+    if (investCb && investCb.checked) {
+        investCb.checked = false;
+        toggleInvestFields(false);
+    }
+}
+
+// Sharing button handlers (called from contract modal)
+function shareDownloadPNG() {
+    if (window._contractCanvas && window._pendingRecord) {
+        downloadContractPNG(window._contractCanvas, window._pendingRecord);
+    }
+}
+
+function shareDownloadJSON() {
+    if (window._pendingRecord) {
+        downloadContractJSON(window._pendingRecord);
+    }
+}
+
+function shareEmail() {
+    if (window._pendingRecord) {
+        emailContract(window._pendingRecord);
     }
 }
 
