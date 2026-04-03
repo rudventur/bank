@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Peoples Bank • Twin Edition</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .landing-hero {
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .landing-hero h1 {
+            font-size: 3rem;
+            letter-spacing: -2px;
+            margin-bottom: 5px;
+        }
+
+        .landing-tagline {
+            color: var(--muted);
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 20px;
+            text-align: center;
+            transition: border-color 0.2s, transform 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon { font-size: 2rem; margin-bottom: 10px; }
+        .feature-card h3 { margin: 0 0 6px 0; font-size: 1.05rem; color: var(--text); }
+        .feature-card p { margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+
+        .cta-btn {
+            display: inline-block;
+            padding: 16px 48px;
+            background: var(--primary);
+            color: #000;
+            border: none;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: 1.15rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.1s, filter 0.2s;
+            box-shadow: var(--glow);
+            font-family: var(--font);
+        }
+
+        .cta-btn:hover { filter: brightness(1.15); }
+        .cta-btn:active { transform: scale(0.97); }
+
+        .landing-footer {
+            text-align: center;
+            padding: 30px 20px;
+            color: var(--muted);
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border);
+            margin-top: 20px;
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .landing-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-green { background: var(--primary-dim); color: var(--primary); }
+        .badge-gold { background: var(--invest-dim); color: var(--invest); }
+        .badge-red { background: rgba(255,71,87,0.1); color: #ff4757; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="landing-hero">
+            <h1>Peoples Bank <span>Twin</span></h1>
+            <p class="landing-tagline">Track who owes who — loans, investments, and repayments in one place.</p>
+
+            <div class="badge-row">
+                <span class="landing-badge badge-green">Lender Mode</span>
+                <span class="landing-badge badge-red">Borrower Mode</span>
+                <span class="landing-badge badge-gold">Investments</span>
+            </div>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3>Loan Records</h3>
+                <p>Log loans and debts with dates, reasons, currency, and proof images. Switch between lender and borrower views.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Investments</h3>
+                <p>Mark loans as investments with simple or compound interest. No repayment demands — watch your returns grow.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📅</div>
+                <h3>Instalments</h3>
+                <p>Create repayment plans — weekly, bi-weekly, or monthly. Track each payment with progress bars and overdue alerts.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📂</div>
+                <h3>Smart Import</h3>
+                <p>Upload Monzo CSV statements and auto-match outgoing payments to your open debts.</p>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-bottom: 40px;">
+            <a href="owe2owe" class="cta-btn">Open App</a>
+        </div>
+
+        <div class="landing-footer">
+            <p>Peoples Bank Twin Edition &mdash; All data stays in your browser (localStorage). Nothing is sent anywhere.</p>
+        </div>
+    </div>
+
+</body>
+</html>
