@@ -5,144 +5,156 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Peoples Bank • Twin Edition</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        .landing-hero {
-            text-align: center;
-            padding: 60px 20px 40px;
-        }
-
-        .landing-hero h1 {
-            font-size: 3rem;
-            letter-spacing: -2px;
-            margin-bottom: 5px;
-        }
-
-        .landing-tagline {
-            color: var(--muted);
-            font-size: 1.1rem;
-            margin-bottom: 40px;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 40px;
-        }
-
-        .feature-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px 20px;
-            text-align: center;
-            transition: border-color 0.2s, transform 0.2s;
-        }
-
-        .feature-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .feature-icon { font-size: 2rem; margin-bottom: 10px; }
-        .feature-card h3 { margin: 0 0 6px 0; font-size: 1.05rem; color: var(--text); }
-        .feature-card p { margin: 0; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
-
-        .cta-btn {
-            display: inline-block;
-            padding: 16px 48px;
-            background: var(--primary);
-            color: #000;
-            border: none;
-            border-radius: 30px;
-            font-weight: 800;
-            font-size: 1.15rem;
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.1s, filter 0.2s;
-            box-shadow: var(--glow);
-            font-family: var(--font);
-        }
-
-        .cta-btn:hover { filter: brightness(1.15); }
-        .cta-btn:active { transform: scale(0.97); }
-
-        .landing-footer {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--muted);
-            font-size: 0.8rem;
-            border-top: 1px solid var(--border);
-            margin-top: 20px;
-        }
-
-        .badge-row {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-
-        .landing-badge {
-            display: inline-block;
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
-        }
-
-        .badge-green { background: var(--primary-dim); color: var(--primary); }
-        .badge-gold { background: var(--invest-dim); color: var(--invest); }
-        .badge-red { background: rgba(255,71,87,0.1); color: #ff4757; }
-    </style>
 </head>
 <body>
 
     <div class="container">
-        <div class="landing-hero">
+        <header>
             <h1>Peoples Bank <span>Twin</span></h1>
-            <p class="landing-tagline">Track who owes who — loans, investments, and repayments in one place.</p>
+            <p class="subtitle" id="view-subtitle">You are the Lender.</p>
 
-            <div class="badge-row">
-                <span class="landing-badge badge-green">Lender Mode</span>
-                <span class="landing-badge badge-red">Borrower Mode</span>
-                <span class="landing-badge badge-gold">Investments</span>
+            <div class="twin-switch">
+                <div class="switch-bg" id="switch-bg"></div>
+                <button class="switch-btn active" onclick="setMode('lender')" id="btn-lender">Lender View</button>
+                <button class="switch-btn" onclick="setMode('borrower')" id="btn-borrower">Borrower View</button>
+            </div>
+        </header>
+
+        <!-- Balance Dashboard -->
+        <div class="balance-container">
+            <div class="balance-label">Net Balance</div>
+            <div class="balance-val" id="balance-display">£0.00</div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="records" onclick="switchTab('records')">Records</button>
+            <button class="tab-btn" data-tab="investments" onclick="switchTab('investments')">Investments</button>
+            <button class="tab-btn" data-tab="instalments" onclick="switchTab('instalments')">Instalments</button>
+            <button class="tab-btn" data-tab="import" onclick="switchTab('import')">Import</button>
+            <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
+        </div>
+
+        <!-- ========== TAB: Records ========== -->
+        <div class="tab-content active" id="tab-records">
+            <div class="panel">
+                <h2 id="form-title">New Loan / Investment</h2>
+                <form onsubmit="handleAdd(event)">
+                    <div class="form-grid">
+                        <div>
+                            <label class="field-label">Person Name</label>
+                            <input type="text" id="p-name" placeholder="Who is the other party?" required list="people-list">
+                            <datalist id="people-list"></datalist>
+                        </div>
+                        <div>
+                            <label class="field-label">Currency</label>
+                            <input type="text" id="p-curr" value="£">
+                        </div>
+                    </div>
+
+                    <div class="toggle-row" id="invest-toggle" onclick="var cb = document.getElementById('p-invest'); cb.checked = !cb.checked; toggleInvestFields(cb.checked);">
+                        <input type="checkbox" id="p-invest" onclick="event.stopPropagation(); toggleInvestFields(this.checked);">
+                        <span class="toggle-label">This is an Investment</span>
+                        <span class="toggle-hint">No repayment demand — earn interest instead</span>
+                    </div>
+
+                    <div class="invest-fields" id="invest-fields">
+                        <div class="form-grid-3">
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Interest Rate (%)</label>
+                                <input type="number" id="p-interest-rate" step="0.1" min="0" value="0" placeholder="e.g. 5">
+                            </div>
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Interest Type</label>
+                                <select id="p-interest-type">
+                                    <option value="none">No Interest</option>
+                                    <option value="simple">Simple (yearly)</option>
+                                    <option value="compound">Compound (yearly)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Contract Duration</label>
+                                <input type="text" id="p-contract-duration" placeholder="e.g. 2 years">
+                            </div>
+                        </div>
+                        <label class="field-label" style="color:var(--invest);">Contract Notes</label>
+                        <textarea id="p-contract-note" rows="2" placeholder="Terms, conditions, or any agreement details..."></textarea>
+                    </div>
+
+                    <label class="field-label">Amount</label>
+                    <input type="number" id="p-amount" step="0.01" placeholder="0.00" required>
+
+                    <label class="field-label">Date</label>
+                    <input type="date" id="p-date" required>
+
+                    <label class="field-label">Reason / Note</label>
+                    <textarea id="p-reason" rows="2" placeholder="What is this for?"></textarea>
+
+                    <label class="field-label">Proof (Image)</label>
+                    <input type="file" id="p-proof" accept="image/*">
+
+                    <button type="submit" class="btn-primary" id="btn-submit">Record Transaction</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>Records</h2>
+                <div id="list"></div>
             </div>
         </div>
 
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">📋</div>
-                <h3>Loan Records</h3>
-                <p>Log loans and debts with dates, reasons, currency, and proof images. Switch between lender and borrower views.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">💰</div>
-                <h3>Investments</h3>
-                <p>Mark loans as investments with simple or compound interest. No repayment demands — watch your returns grow.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📅</div>
-                <h3>Instalments</h3>
-                <p>Create repayment plans — weekly, bi-weekly, or monthly. Track each payment with progress bars and overdue alerts.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">📂</div>
-                <h3>Smart Import</h3>
-                <p>Upload Monzo CSV statements and auto-match outgoing payments to your open debts.</p>
+        <!-- ========== TAB: Investments ========== -->
+        <div class="tab-content" id="tab-investments">
+            <div class="panel">
+                <h2>Investment Portfolio <small style="font-size:0.8rem; font-weight:normal; color:var(--invest);">Interest accrues over time</small></h2>
+                <div id="investments-list"></div>
             </div>
         </div>
 
-        <div style="text-align: center; margin-bottom: 40px;">
-            <a href="owe2owe" class="cta-btn">Open App</a>
+        <!-- ========== TAB: Instalments ========== -->
+        <div class="tab-content" id="tab-instalments">
+            <div id="instalments-list"></div>
         </div>
 
-        <div class="landing-footer">
-            <p>Peoples Bank Twin Edition &mdash; All data stays in your browser (localStorage). Nothing is sent anywhere.</p>
+        <!-- ========== TAB: Import ========== -->
+        <div class="tab-content" id="tab-import">
+            <div class="panel">
+                <h2>Smart Import <small style="font-size:0.8rem;font-weight:normal;">(Monzo CSV)</small></h2>
+                <div class="csv-area" onclick="document.getElementById('csv-file').click()">
+                    <div style="font-size:2rem;">📂</div>
+                    <div>Click to Upload Monzo Statement</div>
+                    <div class="csv-hint">Matches outgoing payments to your "Borrower" debts automatically.</div>
+                </div>
+                <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSV(this)">
+            </div>
+        </div>
+
+        <!-- ========== TAB: Settings ========== -->
+        <div class="tab-content" id="tab-settings">
+            <div class="panel">
+                <h2>Settings</h2>
+                <label class="field-label">Your Email (for export)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="email" id="my-email" placeholder="you@example.com" style="margin-bottom:0;">
+                    <button onclick="saveEmail()" class="btn-sm" style="white-space:nowrap;">Save</button>
+                </div>
+            </div>
         </div>
     </div>
+
+    <!-- Modal for CSV Matches -->
+    <dialog id="match-modal">
+        <div class="modal-header">
+            <span>Potential Matches Found</span>
+            <span onclick="document.getElementById('match-modal').close()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="modal-body" id="match-list"></div>
+    </dialog>
+
+    <script src="app.js"></script>
+    <script src="investments.js"></script>
+    <script src="instalments.js"></script>
+    <script src="csv.js"></script>
 
 </body>
 </html>
