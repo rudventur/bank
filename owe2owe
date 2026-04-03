@@ -37,73 +37,116 @@
 
         <!-- ========== TAB: Records ========== -->
         <div class="tab-content active" id="tab-records">
-
-            <!-- Main Input Form -->
-            <div class="panel">
-                <h2 id="form-title">New Loan / Investment</h2>
+            <div class="panel" style="padding:18px;">
+                <h2 id="form-title" style="font-size:1.1rem; margin-bottom:12px;">New Loan / Investment</h2>
                 <form onsubmit="handleAdd(event)">
-                    <div class="form-grid">
+                    <!-- Row 1: Amount + Currency + Name -->
+                    <div style="display:grid; grid-template-columns:1fr 60px 2fr; gap:8px;">
                         <div>
-                            <label class="field-label">Person Name</label>
-                            <input type="text" id="p-name" placeholder="Who is the other party?" required list="people-list">
+                            <label class="field-label">Amount *</label>
+                            <input type="number" id="p-amount" step="0.01" placeholder="0.00" required style="margin-bottom:6px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Cur</label>
+                            <input type="text" id="p-curr" value="£" style="margin-bottom:6px; text-align:center;">
+                        </div>
+                        <div>
+                            <label class="field-label">Person</label>
+                            <input type="text" id="p-name" placeholder="Other party" list="people-list" style="margin-bottom:6px;">
                             <datalist id="people-list"></datalist>
                         </div>
+                    </div>
+
+                    <!-- Row 2: Date + Reason -->
+                    <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px;">
                         <div>
-                            <label class="field-label">Currency</label>
-                            <input type="text" id="p-curr" value="£">
+                            <label class="field-label">Date</label>
+                            <input type="date" id="p-date" style="margin-bottom:6px;">
+                        </div>
+                        <div>
+                            <label class="field-label">Reason</label>
+                            <input type="text" id="p-reason" placeholder="What for?" style="margin-bottom:6px;">
                         </div>
                     </div>
 
+                    <!-- Proof: compact row -->
+                    <div class="proof-row" style="margin-top:2px; margin-bottom:6px;">
+                        <input type="file" id="p-proof" accept="image/*" style="margin-bottom:0;">
+                        <button type="button" class="btn-camera" onclick="takeProofPhoto()" title="Camera">📸</button>
+                    </div>
+                    <div id="camera-status"></div>
+
                     <!-- Investment Toggle (Lender mode only) -->
-                    <div class="toggle-row" id="invest-toggle" onclick="var cb = document.getElementById('p-invest'); cb.checked = !cb.checked; toggleInvestFields(cb.checked);">
+                    <div class="toggle-row" id="invest-toggle" style="padding:8px 12px; margin-bottom:8px;" onclick="var cb = document.getElementById('p-invest'); cb.checked = !cb.checked; toggleInvestFields(cb.checked);">
                         <input type="checkbox" id="p-invest" onclick="event.stopPropagation(); toggleInvestFields(this.checked);">
-                        <span class="toggle-label">This is an Investment</span>
-                        <span class="toggle-hint">No repayment demand — earn interest instead</span>
+                        <span class="toggle-label" style="font-size:0.85rem;">Investment</span>
+                        <span class="toggle-hint">No repayment — earn interest</span>
                     </div>
 
-                    <!-- Investment-specific fields -->
+                    <!-- Investment fields (hidden by default) -->
                     <div class="invest-fields" id="invest-fields">
                         <div class="form-grid-3">
                             <div>
-                                <label class="field-label" style="color:var(--invest);">Interest Rate (%)</label>
-                                <input type="number" id="p-interest-rate" step="0.1" min="0" value="0" placeholder="e.g. 5">
+                                <label class="field-label" style="color:var(--invest);">Rate (%)</label>
+                                <input type="number" id="p-interest-rate" step="0.1" min="0" value="0" placeholder="5">
                             </div>
                             <div>
-                                <label class="field-label" style="color:var(--invest);">Interest Type</label>
+                                <label class="field-label" style="color:var(--invest);">Type</label>
                                 <select id="p-interest-type">
-                                    <option value="none">No Interest</option>
-                                    <option value="simple">Simple (yearly)</option>
-                                    <option value="compound">Compound (yearly)</option>
+                                    <option value="none">None</option>
+                                    <option value="simple">Simple</option>
+                                    <option value="compound">Compound</option>
                                 </select>
                             </div>
                             <div>
-                                <label class="field-label" style="color:var(--invest);">Contract Duration</label>
-                                <input type="text" id="p-contract-duration" placeholder="e.g. 2 years">
+                                <label class="field-label" style="color:var(--invest);">Importance</label>
+                                <select id="p-importance">
+                                    <option value="low">Low</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
                             </div>
                         </div>
-                        <label class="field-label" style="color:var(--invest);">Contract Notes</label>
-                        <textarea id="p-contract-note" rows="2" placeholder="Terms, conditions, or any agreement details..."></textarea>
+                        <div style="display:grid; grid-template-columns:1fr 2fr; gap:8px;">
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Duration</label>
+                                <input type="text" id="p-contract-duration" placeholder="e.g. 2 years">
+                            </div>
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Terms</label>
+                                <input type="text" id="p-contract-note" placeholder="Contract notes...">
+                            </div>
+                        </div>
                     </div>
 
-                    <label class="field-label">Amount</label>
-                    <input type="number" id="p-amount" step="0.01" placeholder="0.00" required>
+                    <!-- Contact & Account (collapsible) -->
+                    <div class="details-toggle" style="padding:6px 12px; margin-bottom:6px;" onclick="document.getElementById('contact-fields').classList.toggle('visible');">
+                        + Contact &amp; Account <span style="margin-left:auto; font-size:0.7rem;">(optional)</span>
+                    </div>
+                    <div class="details-content" id="contact-fields">
+                        <div class="form-grid-3">
+                            <div>
+                                <label class="field-label">Phone</label>
+                                <input type="tel" id="p-phone" placeholder="07123456789">
+                            </div>
+                            <div>
+                                <label class="field-label">Email</label>
+                                <input type="email" id="p-contact-email" placeholder="them@email.com">
+                            </div>
+                            <div>
+                                <label class="field-label">Account</label>
+                                <input type="text" id="p-account" placeholder="12-34-56 / 12345678">
+                            </div>
+                        </div>
+                    </div>
 
-                    <label class="field-label">Date</label>
-                    <input type="date" id="p-date" required>
-
-                    <label class="field-label">Reason / Note</label>
-                    <textarea id="p-reason" rows="2" placeholder="What is this for?"></textarea>
-
-                    <label class="field-label">Proof (Image)</label>
-                    <input type="file" id="p-proof" accept="image/*">
-
-                    <button type="submit" class="btn-primary" id="btn-submit">Record Transaction</button>
+                    <button type="submit" class="btn-primary" id="btn-submit" style="margin-top:4px;">Record Transaction</button>
                 </form>
             </div>
 
-            <!-- Records List -->
-            <div class="panel">
-                <h2>Records</h2>
+            <div class="panel" style="padding:18px;">
+                <h2 style="font-size:1.1rem;">Records</h2>
                 <div id="list"></div>
             </div>
         </div>
@@ -139,9 +182,28 @@
             <div class="panel">
                 <h2>Settings</h2>
                 <label class="field-label">Your Email (for export)</label>
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
                     <input type="email" id="my-email" placeholder="you@example.com" style="margin-bottom:0;">
                     <button onclick="saveEmail()" class="btn-sm" style="white-space:nowrap;">Save</button>
+                </div>
+
+                <h2>Device Sync <small style="font-size:0.8rem; font-weight:normal; color:var(--muted);">No internet needed</small></h2>
+                <p style="font-size:0.85rem; color:var(--muted); margin-top:0;">
+                    Both parties fill in the deal on their own device, then export the same file.
+                    Import on the other device to merge — matching records, no data touches the web.
+                </p>
+                <div class="sync-row">
+                    <button class="sync-btn" onclick="exportData()">
+                        <span class="sync-icon">📤</span>
+                        <span class="sync-label">Export All Data</span>
+                        <span class="sync-hint">Save as .json file</span>
+                    </button>
+                    <label class="sync-btn" for="import-file" style="margin:0;">
+                        <span class="sync-icon">📥</span>
+                        <span class="sync-label">Import Data</span>
+                        <span class="sync-hint">Merge from .json file</span>
+                    </label>
+                    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
                 </div>
             </div>
         </div>
@@ -156,11 +218,93 @@
         <div class="modal-body" id="match-list"></div>
     </dialog>
 
-    <!-- Scripts (order matters) -->
+    <!-- Camera Modal -->
+    <dialog id="camera-modal">
+        <div class="modal-header">
+            <span>Take Proof Photo</span>
+            <span onclick="cancelCamera()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="modal-body" style="padding:0; overflow:hidden;">
+            <video id="camera-video" class="camera-preview" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+        </div>
+        <div class="camera-actions">
+            <button class="btn-snap" onclick="snapPhoto()">📸 Snap</button>
+            <button class="btn-cancel-cam" onclick="cancelCamera()">Cancel</button>
+        </div>
+    </dialog>
+
+    <!-- Contract Modal (fullscreen-ish) -->
+    <dialog id="contract-modal" style="max-width:700px; width:95%;">
+        <div class="modal-header">
+            <span>Contract</span>
+            <span onclick="closeContractModal()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="modal-body" style="max-height:75vh;">
+            <!-- Contract preview image -->
+            <div id="contract-preview"></div>
+
+            <!-- Signature zone -->
+            <div id="contract-sig-section" style="margin-top:14px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <span style="font-size:0.85rem; color:var(--muted); font-family:monospace;">SIGN BELOW</span>
+                    <button class="btn-sm" onclick="clearSignature()" style="font-size:0.75rem;">Clear</button>
+                </div>
+                <div style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+                    <canvas id="sig-canvas" style="display:block; width:100%; touch-action:none;"></canvas>
+                </div>
+            </div>
+
+            <!-- Confirm button -->
+            <button id="contract-confirm-btn" class="btn-primary" onclick="confirmContract()" style="margin-top:14px;">
+                Confirm &amp; Save
+            </button>
+
+            <!-- Sharing options (shown after confirm) -->
+            <div id="contract-sharing" style="display:none; margin-top:16px;">
+                <div style="font-size:0.85rem; color:var(--muted); margin-bottom:10px; font-family:monospace; text-align:center;">
+                    DEAL SAVED — SHARE IT
+                </div>
+                <div class="sync-row" style="flex-wrap:wrap;">
+                    <button class="sync-btn" onclick="shareDownloadPNG()">
+                        <span class="sync-icon">🖼</span>
+                        <span class="sync-label">PNG</span>
+                        <span class="sync-hint">Contract image</span>
+                    </button>
+                    <button class="sync-btn" onclick="shareDownloadJSON()">
+                        <span class="sync-icon">📄</span>
+                        <span class="sync-label">JSON</span>
+                        <span class="sync-hint">Transaction data</span>
+                    </button>
+                    <button class="sync-btn" onclick="shareEmail()">
+                        <span class="sync-icon">✉️</span>
+                        <span class="sync-label">Email</span>
+                        <span class="sync-hint">Draft with details</span>
+                    </button>
+                </div>
+                <!-- QR Code -->
+                <div style="text-align:center; margin-top:14px;">
+                    <div style="font-size:0.8rem; color:var(--muted); margin-bottom:8px; font-family:monospace;">SCAN TO IMPORT ON OTHER DEVICE</div>
+                    <div id="contract-qr" style="display:inline-block;"></div>
+                </div>
+                <button class="btn-primary" onclick="closeContractModal()" style="margin-top:14px; background:var(--panel); color:var(--text); border:1px solid var(--border);">
+                    Done
+                </button>
+            </div>
+        </div>
+    </dialog>
+
+    <!-- QR Code library (no npm, no build, just a CDN script) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <script src="app.js"></script>
     <script src="investments.js"></script>
     <script src="instalments.js"></script>
     <script src="csv.js"></script>
+    <script src="sync.js"></script>
+    <script src="contract.js"></script>
+    <script src="signature.js"></script>
+    <script src="sharing.js"></script>
 
 </body>
 </html>

@@ -123,25 +123,33 @@ function handleAdd(e) {
     const reason = document.getElementById('p-reason').value.trim();
     const fileInput = document.getElementById('p-proof');
 
+    // Contact & account details (all optional)
+    const contactPhone = document.getElementById('p-phone').value.trim();
+    const contactEmail = document.getElementById('p-contact-email').value.trim();
+    const accountDetails = document.getElementById('p-account').value.trim();
+
     // Investment fields
     const isInvestment = state.mode === 'lender' && document.getElementById('p-invest').checked;
     let interestRate = 0;
     let interestType = 'none';
     let contractNote = '';
+    let importance = 'normal';
 
     if (isInvestment) {
         interestRate = parseFloat(document.getElementById('p-interest-rate').value) || 0;
         interestType = document.getElementById('p-interest-type').value || 'none';
         contractNote = document.getElementById('p-contract-note').value.trim();
+        importance = document.getElementById('p-importance').value || 'normal';
     }
 
-    if (!name || !amount) return showToast("Please enter name and amount", "error");
+    // Only amount is truly required
+    if (!amount) return showToast("Please enter an amount", "error");
 
-    const processRecord = (proofData) => {
-        const record = {
+    const buildRecord = (proofData) => {
+        return {
             id: Date.now(),
             type: state.mode,
-            person: name,
+            person: name || 'Unnamed',
             amount: amount,
             currency: currency,
             date: date,
@@ -152,32 +160,146 @@ function handleAdd(e) {
             interestRate: interestRate,
             interestType: interestType,
             contractNote: contractNote,
-            totalPaid: 0
+            contractDuration: document.getElementById('p-contract-duration').value.trim(),
+            importance: importance,
+            totalPaid: 0,
+            contactPhone: contactPhone,
+            contactEmail: contactEmail,
+            accountDetails: accountDetails
         };
+    };
 
+    const launchContract = (proofData) => {
+        const record = buildRecord(proofData);
+        // Store pending record — contract modal will confirm & save
+        window._pendingRecord = record;
+        openContractModal(record);
+    };
+
+    // Camera photo takes priority, then file picker
+    if (window._capturedProof) {
+        launchContract(window._capturedProof);
+        window._capturedProof = null;
+    } else if (fileInput.files[0]) {
+        compressImage(fileInput.files[0]).then(launchContract).catch(() => {
+            showToast("Image error, saving without it", "error");
+            launchContract(null);
+        });
+    } else {
+        launchContract(null);
+    }
+}
+
+// --- Contract Modal Flow ---
+function openContractModal(record) {
+    const modal = document.getElementById('contract-modal');
+    const preview = document.getElementById('contract-preview');
+    const sharingBtns = document.getElementById('contract-sharing');
+
+    // Reset state
+    sharingBtns.style.display = 'none';
+    preview.innerHTML = '<div style="text-align:center; padding:30px; color:var(--muted);">Generating contract...</div>';
+
+    modal.showModal();
+
+    // Init signature pad
+    setTimeout(() => initSignaturePad('sig-canvas'), 100);
+
+    // Generate preview
+    generateContractCanvas(record, null).then(canvas => {
+        preview.innerHTML = '';
+        canvas.style.width = '100%';
+        canvas.style.borderRadius = '8px';
+        preview.appendChild(canvas);
+        window._contractCanvas = canvas;
+    });
+}
+
+function confirmContract() {
+    const record = window._pendingRecord;
+    if (!record) return;
+
+    const sigData = getSignatureDataUrl();
+
+    // Regenerate with signature if signed
+    const finalize = (finalCanvas) => {
+        window._contractCanvas = finalCanvas;
+
+        // Save the record
         state.records.unshift(record);
         save();
         render();
 
-        // Reset form
-        document.getElementById('p-name').value = '';
-        document.getElementById('p-amount').value = '';
-        document.getElementById('p-reason').value = '';
-        document.getElementById('p-proof').value = '';
-        if (isInvestment) {
-            document.getElementById('p-invest').checked = false;
-            toggleInvestFields(false);
-        }
-        showToast(isInvestment ? "Investment recorded!" : "Record saved!");
+        // Show sharing buttons
+        document.getElementById('contract-sharing').style.display = 'block';
+        document.getElementById('contract-confirm-btn').style.display = 'none';
+        document.getElementById('contract-sig-section').style.display = 'none';
+
+        // Generate QR
+        generateContractQR(record, 'contract-qr');
+
+        showToast('Contract confirmed & saved!');
     };
 
-    if (fileInput.files[0]) {
-        compressImage(fileInput.files[0]).then(processRecord).catch(() => {
-            showToast("Image error, saving without it", "error");
-            processRecord(null);
-        });
+    if (sigData) {
+        generateContractCanvas(record, sigData).then(finalize);
     } else {
-        processRecord(null);
+        finalize(window._contractCanvas);
+    }
+}
+
+function closeContractModal() {
+    const modal = document.getElementById('contract-modal');
+    modal.close();
+
+    // Reset form if record was saved
+    if (window._pendingRecord && state.records.find(r => r.id === window._pendingRecord.id)) {
+        resetForm();
+    }
+
+    // Reset modal state for next time
+    document.getElementById('contract-confirm-btn').style.display = '';
+    document.getElementById('contract-sig-section').style.display = '';
+    document.getElementById('contract-sharing').style.display = 'none';
+    window._pendingRecord = null;
+    window._contractCanvas = null;
+}
+
+function resetForm() {
+    document.getElementById('p-name').value = '';
+    document.getElementById('p-amount').value = '';
+    document.getElementById('p-reason').value = '';
+    document.getElementById('p-proof').value = '';
+    document.getElementById('p-phone').value = '';
+    document.getElementById('p-contact-email').value = '';
+    document.getElementById('p-account').value = '';
+    document.getElementById('p-contract-duration').value = '';
+    window._capturedProof = null;
+    const camStatus = document.getElementById('camera-status');
+    if (camStatus) camStatus.textContent = '';
+    const investCb = document.getElementById('p-invest');
+    if (investCb && investCb.checked) {
+        investCb.checked = false;
+        toggleInvestFields(false);
+    }
+}
+
+// Sharing button handlers (called from contract modal)
+function shareDownloadPNG() {
+    if (window._contractCanvas && window._pendingRecord) {
+        downloadContractPNG(window._contractCanvas, window._pendingRecord);
+    }
+}
+
+function shareDownloadJSON() {
+    if (window._pendingRecord) {
+        downloadContractJSON(window._pendingRecord);
+    }
+}
+
+function shareEmail() {
+    if (window._pendingRecord) {
+        emailContract(window._pendingRecord);
     }
 }
 
@@ -235,6 +357,12 @@ function render() {
 
         const div = document.createElement('div');
         div.className = 'record-item lending';
+        const contactBits = [
+            r.contactPhone ? `Tel: ${esc(r.contactPhone)}` : '',
+            r.contactEmail ? `${esc(r.contactEmail)}` : '',
+            r.accountDetails ? `Acc: ${esc(r.accountDetails)}` : ''
+        ].filter(Boolean).join(' &bull; ');
+
         div.innerHTML = `
             <div class="r-info">
                 <h4>${esc(r.person)} <span class="r-badge badge-loan">${isPaid ? 'Paid' : 'Loan'}</span></h4>
@@ -242,11 +370,13 @@ function render() {
                     <span>${r.date}</span> &bull;
                     <span>${esc(r.reason) || 'No reason'}</span>
                 </div>
+                ${contactBits ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${contactBits}</div>` : ''}
                 ${r.proof ? '<div style="font-size:0.75rem; color:var(--primary); margin-top:5px;">📎 Proof attached</div>' : ''}
                 ${r.totalPaid > 0 ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Paid: ${r.totalPaid.toFixed(2)} / ${r.amount.toFixed(2)} ${r.currency}</div>` : ''}
             </div>
             <div style="text-align:right;">
                 <div class="r-amount">${remaining.toFixed(2)} ${esc(r.currency)}</div>
+                <button class="btn-sm" onclick="exportRecord(${r.id})" style="margin-top:5px;">Export</button>
                 <button class="btn-del" onclick="deleteRecord(${r.id})">Remove</button>
             </div>
         `;
