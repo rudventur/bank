@@ -4,214 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Peoples Bank • Twin Edition</title>
-    <style>
-        :root {
-            /* Dynamic Theme Variables - switched by JS */
-            --bg: #050505;
-            --card: #121212;
-            --panel: #1a1a1a;
-            --input: #252525;
-            --border: #333;
-            --text: #eee;
-            --muted: #888;
-            
-            /* Defaults to Lender Green */
-            --primary: #00ff9d; 
-            --primary-dim: rgba(0, 255, 157, 0.1);
-            --glow: 0 0 15px rgba(0, 255, 157, 0.3);
-            
-            --font: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --radius: 12px;
-        }
-
-        /* Borrower Mode Theme Class */
-        body.borrower-mode {
-            --primary: #ff4757;
-            --primary-dim: rgba(255, 71, 87, 0.1);
-            --glow: 0 0 15px rgba(255, 71, 87, 0.3);
-        }
-
-        * { box-sizing: border-box; outline: none; }
-        
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            transition: color 0.5s ease;
-        }
-
-        .container { max-width: 900px; margin: 0 auto; }
-
-        /* --- Header & Switcher --- */
-        header { text-align: center; margin-bottom: 30px; }
-        
-        h1 { 
-            margin: 0; 
-            font-size: 2.2rem; 
-            text-transform: uppercase; 
-            letter-spacing: -1px;
-            color: var(--text);
-        }
-        h1 span { color: var(--primary); transition: color 0.5s ease; }
-
-        .subtitle { color: var(--muted); margin-top: 5px; font-size: 0.9rem; }
-
-        .twin-switch {
-            display: inline-flex;
-            background: var(--panel);
-            border-radius: 30px;
-            padding: 5px;
-            margin-top: 20px;
-            border: 1px solid var(--border);
-            position: relative;
-        }
-
-        .switch-btn {
-            background: transparent;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 25px;
-            color: var(--muted);
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 2;
-            transition: color 0.3s;
-        }
-
-        .switch-btn.active { color: #000; }
-        
-        /* Sliding background for the switcher */
-        .switch-bg {
-            position: absolute;
-            top: 5px; left: 5px; bottom: 5px;
-            width: 50%; /* half of container */
-            background: var(--primary);
-            border-radius: 25px;
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s ease;
-            box-shadow: var(--glow);
-            z-index: 1;
-        }
-
-        /* --- Panels --- */
-        .panel {
-            background: var(--card);
-            padding: 25px;
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            margin-bottom: 25px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
-        }
-
-        .panel h2 { margin-top: 0; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* --- Balance Display --- */
-        .balance-container {
-            text-align: center;
-            padding: 20px;
-            background: var(--panel);
-            border-radius: var(--radius);
-            margin: 20px 0;
-            border: 1px solid var(--border);
-        }
-        
-        .balance-label { color: var(--muted); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-        .balance-val { font-size: 3rem; font-weight: 800; margin: 10px 0; color: var(--primary); text-shadow: var(--glow); transition: color 0.5s ease; }
-
-        /* --- Forms --- */
-        .form-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            background: var(--input);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text);
-            font-family: inherit;
-            margin-bottom: 10px;
-            transition: border 0.2s;
-        }
-        
-        input:focus, textarea:focus { border-color: var(--primary); }
-
-        button.btn-primary {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: transform 0.1s, filter 0.2s, background 0.5s;
-        }
-        
-        button.btn-primary:hover { filter: brightness(1.1); }
-        button.btn-primary:active { transform: scale(0.98); }
-
-        /* --- List Items --- */
-        .record-item {
-            background: var(--panel);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .record-item.lending { border-left-color: var(--primary); }
-        .record-item.borrowing { border-left-color: var(--primary); } /* Uses theme color */
-
-        .r-info h4 { margin: 0 0 5px 0; font-size: 1.1rem; }
-        .r-meta { font-size: 0.85rem; color: var(--muted); }
-        .r-amount { font-size: 1.2rem; font-weight: bold; color: var(--primary); text-align: right; }
-        
-        .btn-del {
-            background: transparent; border: 1px solid #444; color: #666;
-            padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; margin-top: 5px;
-        }
-        .btn-del:hover { border-color: var(--danger); color: var(--danger); }
-
-        /* --- CSV & Uploads --- */
-        .csv-area {
-            border: 2px dashed var(--border);
-            padding: 20px;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .csv-area:hover { border-color: var(--primary); background: var(--primary-dim); }
-        .csv-hint { font-size: 0.8rem; color: var(--muted); margin-top: 5px; }
-
-        /* --- Modal --- */
-        dialog {
-            background: var(--card); color: var(--text); border: 1px solid var(--border);
-            border-radius: var(--radius); padding: 0; max-width: 500px; width: 90%;
-        }
-        dialog::backdrop { background: rgba(0,0,0,0.8); backdrop-filter: blur(2px); }
-        .modal-header { padding: 15px; border-bottom: 1px solid var(--border); font-weight: bold; display: flex; justify-content: space-between; }
-        .modal-body { padding: 20px; max-height: 300px; overflow-y: auto; }
-        .match-item {
-            padding: 10px; border-bottom: 1px solid #333; cursor: pointer;
-            display: flex; justify-content: space-between;
-        }
-        .match-item:hover { background: var(--input); }
-
-        /* --- Toast --- */
-        .toast {
-            position: fixed; bottom: 20px; right: 20px; background: #222; color: #fff;
-            padding: 12px 20px; border-radius: 8px; border-left: 4px solid var(--primary);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5); animation: slideUp 0.3s ease; z-index: 100;
-        }
-        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -219,7 +12,7 @@
         <header>
             <h1>Peoples Bank <span>Twin</span></h1>
             <p class="subtitle" id="view-subtitle">You are the Lender.</p>
-            
+
             <div class="twin-switch">
                 <div class="switch-bg" id="switch-bg"></div>
                 <button class="switch-btn active" onclick="setMode('lender')" id="btn-lender">Lender View</button>
@@ -233,62 +26,123 @@
             <div class="balance-val" id="balance-display">£0.00</div>
         </div>
 
-        <!-- Main Input Form -->
-        <div class="panel">
-            <h2 id="form-title">New Loan / Investment</h2>
-            <form onsubmit="handleAdd(event)">
-                <div class="form-grid">
-                    <div>
-                        <label style="font-size:0.8rem;color:#888;">Person Name</label>
-                        <input type="text" id="p-name" placeholder="Who is the other party?" required list="people-list">
-                        <datalist id="people-list"></datalist>
-                    </div>
-                    <div>
-                        <label style="font-size:0.8rem;color:#888;">Currency</label>
-                        <input type="text" id="p-curr" value="£">
-                    </div>
-                </div>
-
-                <label style="font-size:0.8rem;color:#888;">Amount</label>
-                <input type="number" id="p-amount" step="0.01" placeholder="0.00" required>
-
-                <label style="font-size:0.8rem;color:#888;">Date</label>
-                <input type="date" id="p-date" required>
-
-                <label style="font-size:0.8rem;color:#888;">Reason / Note</label>
-                <textarea id="p-reason" rows="2" placeholder="What is this for?"></textarea>
-
-                <label style="font-size:0.8rem;color:#888;">Proof (Image)</label>
-                <input type="file" id="p-proof" accept="image/*">
-
-                <button type="submit" class="btn-primary" id="btn-submit">Record Transaction</button>
-            </form>
+        <!-- Tab Navigation -->
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="records" onclick="switchTab('records')">Records</button>
+            <button class="tab-btn" data-tab="investments" onclick="switchTab('investments')">Investments</button>
+            <button class="tab-btn" data-tab="instalments" onclick="switchTab('instalments')">Instalments</button>
+            <button class="tab-btn" data-tab="import" onclick="switchTab('import')">Import</button>
+            <button class="tab-btn" data-tab="settings" onclick="switchTab('settings')">Settings</button>
         </div>
 
-        <!-- CSV Import (Monzo) -->
-        <div class="panel">
-            <h2>Smart Import <small style="font-size:0.8rem;font-weight:normal;">(Monzo CSV)</small></h2>
-            <div class="csv-area" onclick="document.getElementById('csv-file').click()">
-                <div style="font-size:2rem;">📂</div>
-                <div>Click to Upload Monzo Statement</div>
-                <div class="csv-hint">Matches outgoing payments to your "Borrower" debts automatically.</div>
+        <!-- ========== TAB: Records ========== -->
+        <div class="tab-content active" id="tab-records">
+
+            <!-- Main Input Form -->
+            <div class="panel">
+                <h2 id="form-title">New Loan / Investment</h2>
+                <form onsubmit="handleAdd(event)">
+                    <div class="form-grid">
+                        <div>
+                            <label class="field-label">Person Name</label>
+                            <input type="text" id="p-name" placeholder="Who is the other party?" required list="people-list">
+                            <datalist id="people-list"></datalist>
+                        </div>
+                        <div>
+                            <label class="field-label">Currency</label>
+                            <input type="text" id="p-curr" value="£">
+                        </div>
+                    </div>
+
+                    <!-- Investment Toggle (Lender mode only) -->
+                    <div class="toggle-row" id="invest-toggle" onclick="var cb = document.getElementById('p-invest'); cb.checked = !cb.checked; toggleInvestFields(cb.checked);">
+                        <input type="checkbox" id="p-invest" onclick="event.stopPropagation(); toggleInvestFields(this.checked);">
+                        <span class="toggle-label">This is an Investment</span>
+                        <span class="toggle-hint">No repayment demand — earn interest instead</span>
+                    </div>
+
+                    <!-- Investment-specific fields -->
+                    <div class="invest-fields" id="invest-fields">
+                        <div class="form-grid-3">
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Interest Rate (%)</label>
+                                <input type="number" id="p-interest-rate" step="0.1" min="0" value="0" placeholder="e.g. 5">
+                            </div>
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Interest Type</label>
+                                <select id="p-interest-type">
+                                    <option value="none">No Interest</option>
+                                    <option value="simple">Simple (yearly)</option>
+                                    <option value="compound">Compound (yearly)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="field-label" style="color:var(--invest);">Contract Duration</label>
+                                <input type="text" id="p-contract-duration" placeholder="e.g. 2 years">
+                            </div>
+                        </div>
+                        <label class="field-label" style="color:var(--invest);">Contract Notes</label>
+                        <textarea id="p-contract-note" rows="2" placeholder="Terms, conditions, or any agreement details..."></textarea>
+                    </div>
+
+                    <label class="field-label">Amount</label>
+                    <input type="number" id="p-amount" step="0.01" placeholder="0.00" required>
+
+                    <label class="field-label">Date</label>
+                    <input type="date" id="p-date" required>
+
+                    <label class="field-label">Reason / Note</label>
+                    <textarea id="p-reason" rows="2" placeholder="What is this for?"></textarea>
+
+                    <label class="field-label">Proof (Image)</label>
+                    <input type="file" id="p-proof" accept="image/*">
+
+                    <button type="submit" class="btn-primary" id="btn-submit">Record Transaction</button>
+                </form>
             </div>
-            <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSV(this)">
+
+            <!-- Records List -->
+            <div class="panel">
+                <h2>Records</h2>
+                <div id="list"></div>
+            </div>
         </div>
 
-        <!-- Records List -->
-        <div class="panel">
-            <h2>Records</h2>
-            <div id="list"></div>
+        <!-- ========== TAB: Investments ========== -->
+        <div class="tab-content" id="tab-investments">
+            <div class="panel">
+                <h2>Investment Portfolio <small style="font-size:0.8rem; font-weight:normal; color:var(--invest);">Interest accrues over time</small></h2>
+                <div id="investments-list"></div>
+            </div>
         </div>
 
-        <!-- Settings -->
-        <div class="panel">
-            <h2>Settings</h2>
-            <label style="font-size:0.8rem;color:#888;">Your Email (for export)</label>
-            <div style="display:flex; gap:10px;">
-                <input type="email" id="my-email" placeholder="you@example.com" style="margin-bottom:0;">
-                <button onclick="saveEmail()" style="width:auto; background:var(--panel); color:var(--text); border:1px solid var(--border); cursor:pointer;">Save</button>
+        <!-- ========== TAB: Instalments ========== -->
+        <div class="tab-content" id="tab-instalments">
+            <div id="instalments-list"></div>
+        </div>
+
+        <!-- ========== TAB: Import ========== -->
+        <div class="tab-content" id="tab-import">
+            <div class="panel">
+                <h2>Smart Import <small style="font-size:0.8rem;font-weight:normal;">(Monzo CSV)</small></h2>
+                <div class="csv-area" onclick="document.getElementById('csv-file').click()">
+                    <div style="font-size:2rem;">📂</div>
+                    <div>Click to Upload Monzo Statement</div>
+                    <div class="csv-hint">Matches outgoing payments to your "Borrower" debts automatically.</div>
+                </div>
+                <input type="file" id="csv-file" accept=".csv" style="display:none" onchange="handleCSV(this)">
+            </div>
+        </div>
+
+        <!-- ========== TAB: Settings ========== -->
+        <div class="tab-content" id="tab-settings">
+            <div class="panel">
+                <h2>Settings</h2>
+                <label class="field-label">Your Email (for export)</label>
+                <div style="display:flex; gap:10px;">
+                    <input type="email" id="my-email" placeholder="you@example.com" style="margin-bottom:0;">
+                    <button onclick="saveEmail()" class="btn-sm" style="white-space:nowrap;">Save</button>
+                </div>
             </div>
         </div>
     </div>
@@ -299,325 +153,14 @@
             <span>Potential Matches Found</span>
             <span onclick="document.getElementById('match-modal').close()" style="cursor:pointer;">✕</span>
         </div>
-        <div class="modal-body" id="match-list">
-            <!-- Matches go here -->
-        </div>
+        <div class="modal-body" id="match-list"></div>
     </dialog>
 
-    <script>
-        // --- State ---
-        const DB_KEY = 'peoples_twin_v2';
-        let state = {
-            mode: 'lender', // 'lender' or 'borrower'
-            records: [],
-            email: ''
-        };
+    <!-- Scripts (order matters) -->
+    <script src="app.js"></script>
+    <script src="investments.js"></script>
+    <script src="instalments.js"></script>
+    <script src="csv.js"></script>
 
-        // --- Init ---
-        window.onload = function() {
-            const saved = localStorage.getItem(DB_KEY);
-            if(saved) {
-                try { state = JSON.parse(saved); } catch(e) { console.error('Corrupt data'); }
-            }
-            
-            // Set default date
-            document.getElementById('p-date').valueAsDate = new Date();
-            
-            // UI Setup
-            document.getElementById('my-email').value = state.email || '';
-            updateUI();
-            render();
-        };
-
-        // --- Mode Switching ---
-        function setMode(mode) {
-            state.mode = mode;
-            
-            // Visual Updates
-            const bg = document.getElementById('switch-bg');
-            const btnL = document.getElementById('btn-lender');
-            const btnB = document.getElementById('btn-borrower');
-            const body = document.body;
-            
-            if(mode === 'lender') {
-                bg.style.transform = 'translateX(0%)';
-                btnL.classList.add('active');
-                btnB.classList.remove('active');
-                body.classList.remove('borrower-mode');
-            } else {
-                bg.style.transform = 'translateX(100%)';
-                btnL.classList.remove('active');
-                btnB.classList.add('active');
-                body.classList.add('borrower-mode');
-            }
-            
-            updateUI();
-            render();
-            save();
-        }
-
-        function updateUI() {
-            const isLender = state.mode === 'lender';
-            document.getElementById('view-subtitle').textContent = isLender ? "You are the Lender (You are owed money)" : "You are the Borrower (You owe money)";
-            document.getElementById('form-title').textContent = isLender ? "Record a Loan / Investment" : "Record a Borrowing / Debt";
-            document.getElementById('btn-submit').textContent = isLender ? "Record Loan" : "Record Debt";
-        }
-
-        // --- Core Logic ---
-        function handleAdd(e) {
-            e.preventDefault();
-            const name = document.getElementById('p-name').value.trim();
-            const amount = parseFloat(document.getElementById('p-amount').value);
-            const currency = document.getElementById('p-curr').value || '£';
-            const date = document.getElementById('p-date').value;
-            const reason = document.getElementById('p-reason').value.trim();
-            const fileInput = document.getElementById('p-proof');
-
-            if(!name || !amount) return showToast("Please enter name and amount", "error");
-
-            const processRecord = (proofData) => {
-                const record = {
-                    id: Date.now(),
-                    type: state.mode, // 'lender' or 'borrower'
-                    person: name,
-                    amount: amount,
-                    currency: currency,
-                    date: date,
-                    reason: reason,
-                    proof: proofData,
-                    status: 'open'
-                };
-                
-                state.records.unshift(record);
-                save();
-                render();
-                
-                // Reset form partly
-                document.getElementById('p-name').value = '';
-                document.getElementById('p-amount').value = '';
-                document.getElementById('p-reason').value = '';
-                document.getElementById('p-proof').value = '';
-                showToast("Record saved successfully!");
-            };
-
-            if (fileInput.files[0]) {
-                compressImage(fileInput.files[0]).then(processRecord).catch(() => {
-                    showToast("Image error, saving without it", "error");
-                    processRecord(null);
-                });
-            } else {
-                processRecord(null);
-            }
-        }
-
-        function deleteRecord(id) {
-            if(!confirm("Delete this record?")) return;
-            state.records = state.records.filter(r => r.id !== id);
-            save();
-            render();
-        }
-
-        function saveEmail() {
-            state.email = document.getElementById('my-email').value.trim();
-            save();
-            showToast("Email saved");
-        }
-
-        function save() {
-            localStorage.setItem(DB_KEY, JSON.stringify(state));
-        }
-
-        // --- Rendering ---
-        function render() {
-            const list = document.getElementById('list');
-            list.innerHTML = '';
-            
-            let balance = 0;
-            const peopleList = new Set();
-
-            // Filter records relevant to current view
-            const activeRecords = state.records.filter(r => r.type === state.mode);
-
-            if(activeRecords.length === 0) {
-                list.innerHTML = `<div style="text-align:center; color:#555; padding:20px;">No records in this view yet.</div>`;
-            }
-
-            activeRecords.forEach(r => {
-                peopleList.add(r.person);
-
-                // Balance Calculation
-                // If Lender: Positive Amount. If Borrower: Negative Amount.
-                if(state.mode === 'lender') balance += r.amount;
-                else balance -= r.amount;
-
-                const div = document.createElement('div');
-                div.className = `record-item ${state.mode}`;
-                div.innerHTML = `
-                    <div class="r-info">
-                        <h4>${r.person}</h4>
-                        <div class="r-meta">
-                            <span>${r.date}</span> • 
-                            <span>${r.reason || 'No reason'}</span>
-                        </div>
-                        ${r.proof ? `<div style="font-size:0.75rem; color:var(--primary); margin-top:5px;">📎 Proof attached</div>` : ''}
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="r-amount">${r.amount.toFixed(2)} ${r.currency}</div>
-                        <button class="btn-del" onclick="deleteRecord(${r.id})">Remove</button>
-                    </div>
-                `;
-                list.appendChild(div);
-            });
-
-            // Update Balance Display
-            const balEl = document.getElementById('balance-display');
-            balEl.textContent = (balance >= 0 ? '+' : '') + balance.toFixed(2);
-            balEl.style.color = balance >= 0 ? 'var(--primary)' : '#888'; // Use primary or muted for negative
-
-            // Update Datalist for autocomplete
-            const dl = document.getElementById('people-list');
-            dl.innerHTML = '';
-            peopleList.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = p;
-                dl.appendChild(opt);
-            });
-        }
-
-        // --- Monzo CSV Parser Logic ---
-        function handleCSV(input) {
-            const file = input.files[0];
-            if(!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const text = e.target.result;
-                const lines = text.split('\n');
-                const matches = [];
-
-                // Simple heuristic to find columns
-                // Monzo CSV usually has: Date, Type, Name, Emoji, Category, Amount...
-                // We want rows where Amount < 0 (money out) if we are in Borrower mode.
-                
-                // If we are in Lender mode, CSV imports might be money IN (repayments).
-                // But user specifically asked for "Borrower" auto-matching context usually.
-                // Let's implement for Borrower Mode (finding payments I made).
-
-                if(state.mode !== 'borrower') {
-                    alert("CSV Auto-match is designed for Borrower Mode (finding payments you made). Please switch modes.");
-                    return;
-                }
-
-                // Skip header
-                for(let i=1; i<lines.length; i++) {
-                    const row = lines[i].split(',');
-                    if(row.length < 4) continue;
-
-                    // Try to find amount column (usually index 6 in standard Monzo export)
-                    // Or look for a numeric value with a minus sign
-                    let amount = 0;
-                    let date = row[0] || '';
-                    let name = row[3] || 'Unknown'; // Usually 'Name'
-                    
-                    // Robustness: find column that looks like a number
-                    for(let c of row) {
-                        if(!isNaN(parseFloat(c)) && c.includes('-')) {
-                            amount = Math.abs(parseFloat(c));
-                            break;
-                        }
-                    }
-
-                    if(amount > 0) {
-                        // Check if this amount matches an open debt
-                        const openDebts = state.records.filter(r => 
-                            r.type === 'borrower' && 
-                            r.status === 'open' && 
-                            Math.abs(r.amount - amount) < 0.05 // Tolerance of 5p
-                        );
-
-                        if(openDebts.length > 0) {
-                            matches.push({
-                                date: date,
-                                amount: amount,
-                                name: name,
-                                potentialMatches: openDebts
-                            });
-                        }
-                    }
-                }
-
-                if(matches.length > 0) {
-                    showMatches(matches);
-                } else {
-                    showToast("No automatic matches found in CSV.", "error");
-                }
-            };
-            reader.readAsText(file);
-            input.value = ''; // Reset
-        }
-
-        function showMatches(matches) {
-            const list = document.getElementById('match-list');
-            list.innerHTML = '';
-            
-            matches.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'match-item';
-                div.innerHTML = `
-                    <div>
-                        <div><strong>${m.date}</strong> paid <strong>${m.name}</strong></div>
-                        <small style="color:#888">Amount: ${m.amount.toFixed(2)}</small>
-                    </div>
-                    <div style="color:var(--primary); font-weight:bold;">Match Found!</div>
-                `;
-                div.onclick = () => {
-                    // Mark the first match as paid
-                    const debt = m.potentialMatches[0];
-                    debt.status = 'paid';
-                    save();
-                    render();
-                    document.getElementById('match-modal').close();
-                    showToast(`Marked debt to ${debt.person} as Paid!`);
-                };
-                list.appendChild(div);
-            });
-            
-            document.getElementById('match-modal').showModal();
-        }
-
-        // --- Utils ---
-        function compressImage(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = (event) => {
-                    const img = new Image();
-                    img.src = event.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const MAX_WIDTH = 600;
-                        const scaleSize = MAX_WIDTH / img.width;
-                        canvas.width = MAX_WIDTH;
-                        canvas.height = img.height * scaleSize;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                        resolve(canvas.toDataURL('image/jpeg', 0.7));
-                    };
-                    img.onerror = reject;
-                };
-                reader.onerror = reject;
-            });
-        }
-
-        function showToast(msg, type='success') {
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.textContent = msg;
-            if(type === 'error') t.style.borderLeftColor = '#ff4757';
-            document.body.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
-        }
-
-    </script>
 </body>
 </html>
