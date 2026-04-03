@@ -123,25 +123,33 @@ function handleAdd(e) {
     const reason = document.getElementById('p-reason').value.trim();
     const fileInput = document.getElementById('p-proof');
 
+    // Contact & account details (all optional)
+    const contactPhone = document.getElementById('p-phone').value.trim();
+    const contactEmail = document.getElementById('p-contact-email').value.trim();
+    const accountDetails = document.getElementById('p-account').value.trim();
+
     // Investment fields
     const isInvestment = state.mode === 'lender' && document.getElementById('p-invest').checked;
     let interestRate = 0;
     let interestType = 'none';
     let contractNote = '';
+    let importance = 'normal';
 
     if (isInvestment) {
         interestRate = parseFloat(document.getElementById('p-interest-rate').value) || 0;
         interestType = document.getElementById('p-interest-type').value || 'none';
         contractNote = document.getElementById('p-contract-note').value.trim();
+        importance = document.getElementById('p-importance').value || 'normal';
     }
 
-    if (!name || !amount) return showToast("Please enter name and amount", "error");
+    // Only amount is truly required
+    if (!amount) return showToast("Please enter an amount", "error");
 
     const processRecord = (proofData) => {
         const record = {
             id: Date.now(),
             type: state.mode,
-            person: name,
+            person: name || 'Unnamed',
             amount: amount,
             currency: currency,
             date: date,
@@ -152,7 +160,11 @@ function handleAdd(e) {
             interestRate: interestRate,
             interestType: interestType,
             contractNote: contractNote,
-            totalPaid: 0
+            importance: importance,
+            totalPaid: 0,
+            contactPhone: contactPhone,
+            contactEmail: contactEmail,
+            accountDetails: accountDetails
         };
 
         state.records.unshift(record);
@@ -164,6 +176,12 @@ function handleAdd(e) {
         document.getElementById('p-amount').value = '';
         document.getElementById('p-reason').value = '';
         document.getElementById('p-proof').value = '';
+        document.getElementById('p-phone').value = '';
+        document.getElementById('p-contact-email').value = '';
+        document.getElementById('p-account').value = '';
+        window._capturedProof = null;
+        const camStatus = document.getElementById('camera-status');
+        if (camStatus) { camStatus.textContent = ''; }
         if (isInvestment) {
             document.getElementById('p-invest').checked = false;
             toggleInvestFields(false);
@@ -171,7 +189,11 @@ function handleAdd(e) {
         showToast(isInvestment ? "Investment recorded!" : "Record saved!");
     };
 
-    if (fileInput.files[0]) {
+    // Camera photo takes priority, then file picker
+    if (window._capturedProof) {
+        processRecord(window._capturedProof);
+        window._capturedProof = null;
+    } else if (fileInput.files[0]) {
         compressImage(fileInput.files[0]).then(processRecord).catch(() => {
             showToast("Image error, saving without it", "error");
             processRecord(null);
@@ -235,6 +257,12 @@ function render() {
 
         const div = document.createElement('div');
         div.className = 'record-item lending';
+        const contactBits = [
+            r.contactPhone ? `Tel: ${esc(r.contactPhone)}` : '',
+            r.contactEmail ? `${esc(r.contactEmail)}` : '',
+            r.accountDetails ? `Acc: ${esc(r.accountDetails)}` : ''
+        ].filter(Boolean).join(' &bull; ');
+
         div.innerHTML = `
             <div class="r-info">
                 <h4>${esc(r.person)} <span class="r-badge badge-loan">${isPaid ? 'Paid' : 'Loan'}</span></h4>
@@ -242,11 +270,13 @@ function render() {
                     <span>${r.date}</span> &bull;
                     <span>${esc(r.reason) || 'No reason'}</span>
                 </div>
+                ${contactBits ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${contactBits}</div>` : ''}
                 ${r.proof ? '<div style="font-size:0.75rem; color:var(--primary); margin-top:5px;">📎 Proof attached</div>' : ''}
                 ${r.totalPaid > 0 ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Paid: ${r.totalPaid.toFixed(2)} / ${r.amount.toFixed(2)} ${r.currency}</div>` : ''}
             </div>
             <div style="text-align:right;">
                 <div class="r-amount">${remaining.toFixed(2)} ${esc(r.currency)}</div>
+                <button class="btn-sm" onclick="exportRecord(${r.id})" style="margin-top:5px;">Export</button>
                 <button class="btn-del" onclick="deleteRecord(${r.id})">Remove</button>
             </div>
         `;

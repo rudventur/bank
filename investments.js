@@ -42,27 +42,54 @@ function renderInvestments() {
     }
 }
 
+// Importance levels with badge colours
+const IMPORTANCE_LEVELS = {
+    low:      { label: 'Low',      color: '#888',    bg: 'rgba(136,136,136,0.12)' },
+    normal:   { label: 'Normal',   color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' },
+    high:     { label: 'High',     color: '#ffa500', bg: 'rgba(255,165,0,0.12)' },
+    critical: { label: 'Critical', color: '#ff4757', bg: 'rgba(255,71,87,0.15)' }
+};
+
+function getImportanceBadge(level) {
+    const imp = IMPORTANCE_LEVELS[level] || IMPORTANCE_LEVELS.normal;
+    return `<span class="r-badge" style="background:${imp.bg}; color:${imp.color};">${imp.label}</span>`;
+}
+
 function buildInvestmentCard(r) {
     const interest = calculateInterest(r);
     const totalValue = r.amount + interest;
     const div = document.createElement('div');
     div.className = 'record-item investment';
 
+    const imp = r.importance || 'normal';
+    const impStyle = IMPORTANCE_LEVELS[imp] || IMPORTANCE_LEVELS.normal;
+
+    // Colour the left border by importance
+    div.style.borderLeftColor = impStyle.color;
+
     const interestLabel = r.interestType === 'none'
         ? 'No interest'
         : `${r.interestRate}% ${r.interestType === 'compound' ? 'compound' : 'simple'} / year`;
+
+    const contactBits = [
+        r.contactPhone ? `Tel: ${esc(r.contactPhone)}` : '',
+        r.contactEmail ? `${esc(r.contactEmail)}` : '',
+        r.accountDetails ? `Acc: ${esc(r.accountDetails)}` : ''
+    ].filter(Boolean).join(' &bull; ');
 
     div.innerHTML = `
         <div class="r-info" style="flex:1;">
             <h4>
                 ${esc(r.person)}
                 <span class="r-badge badge-invest">Investment</span>
+                ${getImportanceBadge(imp)}
             </h4>
             <div class="r-meta">
                 <span>${r.date}</span> &bull;
                 <span>${esc(r.reason) || 'No reason'}</span>
             </div>
             <div class="interest-tag">${interestLabel}</div>
+            ${contactBits ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">${contactBits}</div>` : ''}
             ${r.contractNote ? `<div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">📝 ${esc(r.contractNote)}</div>` : ''}
             ${r.proof ? '<div style="font-size:0.75rem; color:var(--invest); margin-top:5px;">📎 Proof attached</div>' : ''}
             ${interest > 0 ? `
@@ -76,7 +103,8 @@ function buildInvestmentCard(r) {
         <div style="text-align:right; min-width: 120px;">
             <div class="r-amount invest-amount">${totalValue.toFixed(2)} ${esc(r.currency)}</div>
             <div style="font-size:0.75rem; color:var(--muted);">total value</div>
-            <button class="btn-del" onclick="deleteRecord(${r.id})" style="margin-top:8px;">Remove</button>
+            <button class="btn-sm" onclick="exportRecord(${r.id})" style="margin-top:5px;">Export</button>
+            <button class="btn-del" onclick="deleteRecord(${r.id})" style="margin-top:4px;">Remove</button>
         </div>
     `;
     return div;

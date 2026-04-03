@@ -37,15 +37,13 @@
 
         <!-- ========== TAB: Records ========== -->
         <div class="tab-content active" id="tab-records">
-
-            <!-- Main Input Form -->
             <div class="panel">
                 <h2 id="form-title">New Loan / Investment</h2>
                 <form onsubmit="handleAdd(event)">
                     <div class="form-grid">
                         <div>
                             <label class="field-label">Person Name</label>
-                            <input type="text" id="p-name" placeholder="Who is the other party?" required list="people-list">
+                            <input type="text" id="p-name" placeholder="Who is the other party?" list="people-list">
                             <datalist id="people-list"></datalist>
                         </div>
                         <div>
@@ -77,31 +75,63 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="field-label" style="color:var(--invest);">Contract Duration</label>
-                                <input type="text" id="p-contract-duration" placeholder="e.g. 2 years">
+                                <label class="field-label" style="color:var(--invest);">Importance</label>
+                                <select id="p-importance">
+                                    <option value="low">Low</option>
+                                    <option value="normal" selected>Normal</option>
+                                    <option value="high">High</option>
+                                    <option value="critical">Critical</option>
+                                </select>
                             </div>
                         </div>
+                        <label class="field-label" style="color:var(--invest);">Contract Duration</label>
+                        <input type="text" id="p-contract-duration" placeholder="e.g. 2 years">
                         <label class="field-label" style="color:var(--invest);">Contract Notes</label>
                         <textarea id="p-contract-note" rows="2" placeholder="Terms, conditions, or any agreement details..."></textarea>
                     </div>
 
-                    <label class="field-label">Amount</label>
+                    <label class="field-label">Amount (required)</label>
                     <input type="number" id="p-amount" step="0.01" placeholder="0.00" required>
 
                     <label class="field-label">Date</label>
-                    <input type="date" id="p-date" required>
+                    <input type="date" id="p-date">
 
                     <label class="field-label">Reason / Note</label>
                     <textarea id="p-reason" rows="2" placeholder="What is this for?"></textarea>
 
-                    <label class="field-label">Proof (Image)</label>
-                    <input type="file" id="p-proof" accept="image/*">
+                    <!-- Contact & Account Details (optional, collapsible) -->
+                    <div class="details-toggle" onclick="document.getElementById('contact-fields').classList.toggle('visible');">
+                        + Contact &amp; Account Details <span style="margin-left:auto; font-size:0.75rem;">(optional)</span>
+                    </div>
+                    <div class="details-content" id="contact-fields">
+                        <div class="form-grid-3">
+                            <div>
+                                <label class="field-label">Phone</label>
+                                <input type="tel" id="p-phone" placeholder="e.g. 07123456789">
+                            </div>
+                            <div>
+                                <label class="field-label">Email</label>
+                                <input type="email" id="p-contact-email" placeholder="them@email.com">
+                            </div>
+                            <div>
+                                <label class="field-label">Account / Sort</label>
+                                <input type="text" id="p-account" placeholder="e.g. 12-34-56 / 12345678">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Proof: file picker OR camera -->
+                    <label class="field-label">Proof (Image or Camera)</label>
+                    <div class="proof-row">
+                        <input type="file" id="p-proof" accept="image/*">
+                        <button type="button" class="btn-camera" onclick="takeProofPhoto()" title="Take photo with camera">📸</button>
+                    </div>
+                    <div id="camera-status"></div>
 
                     <button type="submit" class="btn-primary" id="btn-submit">Record Transaction</button>
                 </form>
             </div>
 
-            <!-- Records List -->
             <div class="panel">
                 <h2>Records</h2>
                 <div id="list"></div>
@@ -139,9 +169,28 @@
             <div class="panel">
                 <h2>Settings</h2>
                 <label class="field-label">Your Email (for export)</label>
-                <div style="display:flex; gap:10px;">
+                <div style="display:flex; gap:10px; margin-bottom:20px;">
                     <input type="email" id="my-email" placeholder="you@example.com" style="margin-bottom:0;">
                     <button onclick="saveEmail()" class="btn-sm" style="white-space:nowrap;">Save</button>
+                </div>
+
+                <h2>Device Sync <small style="font-size:0.8rem; font-weight:normal; color:var(--muted);">No internet needed</small></h2>
+                <p style="font-size:0.85rem; color:var(--muted); margin-top:0;">
+                    Both parties fill in the deal on their own device, then export the same file.
+                    Import on the other device to merge — matching records, no data touches the web.
+                </p>
+                <div class="sync-row">
+                    <button class="sync-btn" onclick="exportData()">
+                        <span class="sync-icon">📤</span>
+                        <span class="sync-label">Export All Data</span>
+                        <span class="sync-hint">Save as .json file</span>
+                    </button>
+                    <label class="sync-btn" for="import-file" style="margin:0;">
+                        <span class="sync-icon">📥</span>
+                        <span class="sync-label">Import Data</span>
+                        <span class="sync-hint">Merge from .json file</span>
+                    </label>
+                    <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
                 </div>
             </div>
         </div>
@@ -156,11 +205,27 @@
         <div class="modal-body" id="match-list"></div>
     </dialog>
 
-    <!-- Scripts (order matters) -->
+    <!-- Camera Modal -->
+    <dialog id="camera-modal">
+        <div class="modal-header">
+            <span>Take Proof Photo</span>
+            <span onclick="cancelCamera()" style="cursor:pointer;">✕</span>
+        </div>
+        <div class="modal-body" style="padding:0; overflow:hidden;">
+            <video id="camera-video" class="camera-preview" autoplay playsinline></video>
+            <canvas id="camera-canvas" style="display:none;"></canvas>
+        </div>
+        <div class="camera-actions">
+            <button class="btn-snap" onclick="snapPhoto()">📸 Snap</button>
+            <button class="btn-cancel-cam" onclick="cancelCamera()">Cancel</button>
+        </div>
+    </dialog>
+
     <script src="app.js"></script>
     <script src="investments.js"></script>
     <script src="instalments.js"></script>
     <script src="csv.js"></script>
+    <script src="sync.js"></script>
 
 </body>
 </html>
