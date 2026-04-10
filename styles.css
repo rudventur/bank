@@ -570,3 +570,323 @@ dialog::backdrop { background: rgba(0,0,0,0.8); backdrop-filter: blur(2px); }
 #contract-qr img {
     display: block;
 }
+
+/* ===== Investment Calculator Panel ===== */
+.calc-panel {
+    background: linear-gradient(180deg, var(--card) 0%, rgba(255,215,0,0.03) 100%);
+    border-color: rgba(255,215,0,0.25);
+}
+
+.calc-result {
+    background: var(--panel);
+    border-radius: 8px;
+    padding: 14px;
+    border: 1px solid var(--border);
+}
+
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.calc-stat {
+    text-align: center;
+    padding: 8px 6px;
+    background: var(--input);
+    border-radius: 6px;
+}
+
+.calc-label {
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    font-family: monospace;
+    margin-bottom: 4px;
+}
+
+.calc-val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text);
+    font-family: monospace;
+}
+
+/* ===== Investment Breakdown ===== */
+.invest-breakdown {
+    margin-top: 12px;
+    padding: 10px 12px;
+    background: var(--input);
+    border-radius: 8px;
+    border: 1px solid rgba(255,215,0,0.12);
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.ib-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 3px 0;
+    color: var(--muted);
+}
+
+.ib-row .ib-val {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.ib-row.ib-total {
+    border-top: 1px dashed var(--border);
+    margin-top: 4px;
+    padding-top: 6px;
+    font-weight: 700;
+}
+
+.ib-row.ib-total .ib-label { color: var(--text); }
+
+/* ===== Payout History ===== */
+.payout-history {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background: var(--panel);
+    border-left: 2px solid var(--primary);
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.8rem;
+}
+
+.ph-label {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    color: var(--muted);
+    margin-bottom: 4px;
+}
+
+.ph-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+}
+
+/* ===== Instalment Mode Switch ===== */
+.inst-mode-switch {
+    display: flex;
+    gap: 0;
+    background: var(--panel);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin: 12px 0;
+    overflow: hidden;
+}
+
+.inst-mode-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px;
+    color: var(--muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: 0.2s;
+}
+
+.inst-mode-btn.active {
+    background: var(--primary);
+    color: #000;
+}
+
+/* ===== Custom Amount Rows ===== */
+.custom-hint {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-bottom: 10px;
+    padding: 8px 12px;
+    background: var(--panel);
+    border-radius: 6px;
+    border-left: 2px solid var(--invest);
+}
+
+.custom-row {
+    display: grid;
+    grid-template-columns: 24px 1fr 1fr 32px;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.custom-row .cr-num {
+    text-align: center;
+    font-family: monospace;
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+
+.custom-row input {
+    margin-bottom: 0;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+}
+
+.custom-row .cr-del {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 8px 0;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 0.9rem;
+    font-family: var(--font);
+}
+.custom-row .cr-del:hover { border-color: #ff4757; color: #ff4757; }
+
+.custom-summary {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--panel);
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.cs-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 0;
+    color: var(--muted);
+}
+
+.cs-warn {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+    color: #ff4757;
+    font-size: 0.8rem;
+}
+
+.cs-ok {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--border);
+    color: var(--primary);
+    font-size: 0.8rem;
+}
+
+/* ===== Plan Body (schedule + calendar side-by-side) ===== */
+.plan-body {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+@media (max-width: 700px) {
+    .plan-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.plan-schedule {
+    min-width: 0;
+}
+
+.plan-calendar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ===== Mini Calendar ===== */
+.mini-cal {
+    background: var(--input);
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid var(--border);
+}
+
+.cal-title {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-family: monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.cal-head {
+    text-align: center;
+    font-size: 0.6rem;
+    color: var(--muted);
+    font-family: monospace;
+    padding: 2px 0;
+}
+
+.cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    background: var(--card);
+    border-radius: 3px;
+    color: var(--muted);
+    font-family: monospace;
+    position: relative;
+}
+
+.cal-cell.cal-empty {
+    background: transparent;
+}
+
+.cal-cell.cal-pending {
+    background: rgba(255,165,0,0.2);
+    color: #ffa500;
+    font-weight: 700;
+}
+
+.cal-cell.cal-paid {
+    background: var(--primary-dim);
+    color: var(--primary);
+    font-weight: 700;
+}
+
+.cal-cell.cal-overdue {
+    background: rgba(255,71,87,0.2);
+    color: #ff4757;
+    font-weight: 700;
+}
+
+.cal-cell.cal-today {
+    box-shadow: 0 0 0 1px var(--text);
+}
+
+.cal-legend {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-family: monospace;
+}
+
+.cal-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 3px;
+    vertical-align: middle;
+}
+
+.cal-dot-paid { background: var(--primary); }
+.cal-dot-pending { background: #ffa500; }
+.cal-dot-overdue { background: #ff4757; }
